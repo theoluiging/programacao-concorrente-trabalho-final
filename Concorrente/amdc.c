@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <pthread.h>
+#include "../timer.h"
+
+double start, end;
 
 // barreira
 typedef struct {
@@ -135,7 +138,8 @@ void amd(uint32_t* dists, uint32_t v) {
     }
 
     solution = smd / paths;
-    printf("%d\n", solution);
+    GET_TIME(end);
+    printf("Solucao: %d. Tempo: %lf\n", solution, end-start);
 }
 
 
@@ -185,6 +189,7 @@ int main(int argc, char* argv[]) {
         if (cost < dists[source*v+dest]) dists[source*v+dest] = cost;
     }
 
+    GET_TIME(start);
     // calcula a distância mínima para todos os pares de vértices (paralelo)
     md_all_pairs(dists, v, num_threads);
 

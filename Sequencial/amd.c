@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "../timer.h"
+
+double start, end;
 
 // Solves the minimum distance between all pairs of vertices
 void md_all_pairs (uint32_t* dists, uint32_t v) {
@@ -39,7 +42,8 @@ void amd (uint32_t* dists, uint32_t v) {
     }
 
 	solution = smd / paths;
-	printf("%d\n", solution);
+    GET_TIME(end);
+	printf("Solucao: %d. Tempo: %lf\n", solution, end-start);
 
 }
 
@@ -78,7 +82,7 @@ int main (int argc, char* argv[]) {
         scanf("%u %u %u", &source, &dest, &cost);
         if (cost < dists[source*v+dest]) dists[source*v+dest] = cost;
     }
-
+    GET_TIME(start);
 	//Computes the minimum distance for all pairs of vertices
     md_all_pairs(dists, v);
 
