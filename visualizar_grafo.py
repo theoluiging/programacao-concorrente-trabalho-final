@@ -1,4 +1,5 @@
 import sys
+import os
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -36,6 +37,7 @@ def desenhar_grafo(G, titulo="Grafo", salvar_como=None):
     nx.draw_networkx_edges(
         G,
         pos,
+        arrows=True,
         arrowstyle='-|>',
         arrowsize=14,
         edge_color='gray',
@@ -67,7 +69,7 @@ def main():
         print("Uso: python visualizar_grafo.py <arquivo_grafo> [--save nome.png]")
         sys.exit(1)
 
-    arquivo = sys.argv[1]
+    arquivo = os.path.join("Testes",sys.argv[1])
     salvar = None
     if len(sys.argv) > 3 and sys.argv[2] == "--save":
         salvar = sys.argv[3]

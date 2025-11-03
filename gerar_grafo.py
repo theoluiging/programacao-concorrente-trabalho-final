@@ -4,6 +4,7 @@ import networkx as nx
 import os
 from visualizar_grafo import desenhar_grafo
 
+
 def gerar_grafo(tipo, v, peso_max=10, densidade=0.2, seed=None):
     random.seed(seed)
 
@@ -17,14 +18,28 @@ def gerar_grafo(tipo, v, peso_max=10, densidade=0.2, seed=None):
             G = nx.gnm_random_graph(v, int(densidade * v * (v - 1)), directed=True)
 
     elif tipo == "desconectado":
-        G = nx.gnm_random_graph(v, int(densidade * v * (v - 1) / 3), directed=True)
-        # Gera várias componentes desconectadas
-        comps = list(nx.weakly_connected_components(G))
-        if len(comps) < 2:
-            # Forçar desconexão removendo algumas arestas
-            edges = list(G.edges())
-            for e in random.sample(edges, len(edges) // 4):
-                G.remove_edge(*e)
+        # Quantidade de componentes (2 a 5, ajusta conforme tamanho)
+        k = max(2, min(5, v // 5))
+        tamanhos = [v // k] * k
+        resto = v % k
+        for i in range(resto):
+            tamanhos[i] += 1
+
+        G = nx.DiGraph()
+        offset = 0
+        for tam in tamanhos:
+            # Gera um subgrafo conectado (aleatório)
+            sub = nx.gnm_random_graph(
+                tam,
+                max(1, int(densidade * tam * (tam - 1) / 2)),
+                directed=True
+            )
+
+            # Reindexar os nós para que não se sobreponham
+            mapeamento = {n: n + offset for n in sub.nodes()}
+            sub = nx.relabel_nodes(sub, mapeamento)
+            G.update(sub)
+            offset += tam
 
     elif tipo == "ciclo":
         G = nx.DiGraph()
@@ -37,21 +52,13 @@ def gerar_grafo(tipo, v, peso_max=10, densidade=0.2, seed=None):
 
     elif tipo == "esparso":
         # Gerar árvore (v-1 arestas)
-        G = nx.random_tree(v, seed=seed, create_using=nx.DiGraph())
-        # Direcionar aleatoriamente
-        for (u, v_) in list(G.edges()):
-            if random.random() < 0.5:
-                G.remove_edge(u, v_)
-                G.add_edge(v_, u)
+        G = nx.random_unlabeled_tree(v, seed=seed)
 
     elif tipo == "isolado":
-        G = nx.gnm_random_graph(v, int(densidade * v * (v - 1)), directed=True)
-        # Remove arestas de alguns vértices
-        isolados = random.sample(G.nodes(), max(1, v // 10))
-        for n in isolados:
-            for viz in list(G.successors(n)) + list(G.predecessors(n)):
-                G.remove_edge(n, viz)
-                G.remove_edge(viz, n)
+        G = nx.gnm_random_graph(v, int(densidade * v * (v - 1) / 3), directed=True)
+        edges = list(G.edges())
+        for e in random.sample(edges, max(1, len(edges) // 5)):
+            G.remove_edge(*e)
 
     else:
         raise ValueError(f"Tipo de grafo '{tipo}' não reconhecido.")
