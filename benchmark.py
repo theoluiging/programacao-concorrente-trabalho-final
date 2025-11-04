@@ -4,22 +4,41 @@
 Script para avaliar o desempenho da solução concorrente
 Mede tempo de execução, calcula speedup e eficiência
 """
-
 import subprocess
 import os
 import csv
 import statistics
-from collections import defaultdict
 
 # Configuração
 REPETICOES = 5
 THREADS = [1, 2, 4, 8]
 
-TESTES = [
-    ("simples_m.txt", "Médio (20 vértices)"),
-    ("simples_g.txt", "Grande (100 vértices)"),
-    ("denso_g.txt", "Denso (500 vértices)"),
-]
+def extrair_descricao(caminho):
+    numeros = []
+    tamanho = ""
+    if caminho[-5] == "g":
+        tamanho = "Grande"
+    elif caminho[-5] == "p":
+        tamanho = "Pequeno"
+    else:
+        tamanho = "Médio"
+    
+    with open(caminho) as f:
+        linha = f.readline()
+        for word in linha.split():
+            numeros.append(int(word))
+    
+    return tamanho + " (" + str(numeros[0]) + " vértices e " + str(numeros[1]) + " arestas)"
+
+def listar_testes():
+    testes=[]
+
+    arquivos = os.listdir("Testes")
+    for arquivo in arquivos:
+        caminho = os.path.join("Testes", arquivo)
+        if os.path.isfile(caminho) and arquivo.endswith(".txt"):
+            testes.append((arquivo, extrair_descricao(caminho)))
+    return testes
 
 def compilar():
     """Compila versões sequencial e concorrente"""
@@ -87,17 +106,17 @@ def main():
     # Arquivo de saída
     resultado_csv = "resultados_desempenho/resultados.csv"
 
+    TESTES = listar_testes()
+
     with open(resultado_csv, "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Arquivo", "Descrição", "Vértices", "Threads", "Repetição", "Tempo(s)", "Speedup", "Eficiência"])
+        writer.writerow(["Arquivo", "Descrição", "Threads", "Repetição", "Tempo(s)", "Speedup", "Eficiência"])
 
         print("Iniciando benchmarks...")
         print("=" * 70)
         print()
 
         for arquivo, descricao in TESTES:
-            vertices = contar_vertices(arquivo)
-
             print(f"Teste: {arquivo} - {descricao}")
             print("-" * 70)
 
@@ -112,7 +131,7 @@ def main():
                     continue
 
                 tempos_seq.append(tempo)
-                writer.writerow([arquivo, descricao, vertices, 1, r, f"{tempo:.6f}", "1.0000", "1.0000"])
+                writer.writerow([arquivo, descricao, 1, r, f"{tempo:.6f}", "1.0000", "1.0000"])
                 print(".", end="", flush=True)
 
             media_seq = statistics.mean(tempos_seq) if tempos_seq else 0
@@ -136,7 +155,7 @@ def main():
                     speedup = media_seq / tempo if tempo > 0 else 0
                     eficiencia = speedup / t if t > 0 else 0
 
-                    writer.writerow([arquivo, descricao, vertices, t, r, f"{tempo:.6f}", f"{speedup:.4f}", f"{eficiencia:.4f}"])
+                    writer.writerow([arquivo, descricao, t, r, f"{tempo:.6f}", f"{speedup:.4f}", f"{eficiencia:.4f}"])
                     print(".", end="", flush=True)
 
                 media_conc = statistics.mean(tempos_conc) if tempos_conc else 0

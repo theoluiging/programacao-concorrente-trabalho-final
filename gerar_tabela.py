@@ -17,7 +17,7 @@ def gerar_tabela_resumo(arquivo_csv):
 
     # Dicionário para armazenar dados: [arquivo][threads] = [tempos]
     dados = defaultdict(lambda: defaultdict(list))
-    info_testes = {}  # arquivo -> (descrição, vértices)
+    info_testes = {}  # arquivo -> descrição
 
     # Lê o arquivo CSV
     with open(arquivo_csv, 'r') as f:
@@ -25,13 +25,12 @@ def gerar_tabela_resumo(arquivo_csv):
         for row in reader:
             arquivo = row['Arquivo']
             descricao = row['Descrição']
-            vertices = row['Vértices']
             threads = int(row['Threads'])
             tempo = float(row['Tempo(s)'])
             speedup = float(row['Speedup'])
             eficiencia = float(row['Eficiência'])
 
-            info_testes[arquivo] = (descricao, vertices)
+            info_testes[arquivo] = descricao
             dados[arquivo][threads].append({
                 'tempo': tempo,
                 'speedup': speedup,
@@ -45,8 +44,8 @@ def gerar_tabela_resumo(arquivo_csv):
     print()
 
     for arquivo in sorted(dados.keys()):
-        descricao, vertices = info_testes[arquivo]
-        print(f"Teste: {arquivo} - {descricao} ({vertices} vértices)")
+        descricao = info_testes[arquivo]
+        print(f"Teste: {arquivo} - {descricao}")
         print("-" * 100)
         print(f"{'Threads':<10} {'Tempo Médio (s)':<20} {'Speedup':<15} {'Eficiência':<15}")
         print("-" * 100)
@@ -73,8 +72,8 @@ def gerar_tabela_resumo(arquivo_csv):
         f.write("="*100 + "\n\n")
 
         for arquivo in sorted(dados.keys()):
-            descricao, vertices = info_testes[arquivo]
-            f.write(f"Teste: {arquivo} - {descricao} ({vertices} vértices)\n")
+            descricao = info_testes[arquivo]
+            f.write(f"Teste: {arquivo} - {descricao}\n")
             f.write("-" * 100 + "\n")
             f.write(f"{'Threads':<10} {'Tempo Médio (s)':<20} {'Speedup':<15} {'Eficiência':<15}\n")
             f.write("-" * 100 + "\n")
